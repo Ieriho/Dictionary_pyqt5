@@ -50,6 +50,9 @@ class Ui_FormWorkTable(object):
         font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
+        self.btnSearch_2 = QtWidgets.QPushButton(FormWorkTable)
+        self.btnSearch_2.setGeometry(QtCore.QRect(470, 90, 131, 31))
+        self.btnSearch_2.setObjectName("btnSearch_2")
 
         self.retranslateUi(FormWorkTable)
         QtCore.QMetaObject.connectSlotsByName(FormWorkTable)
@@ -63,3 +66,4 @@ class Ui_FormWorkTable(object):
         self.btnRemove.setText(_translate("FormWorkTable", "Remove"))
         self.btnSearch.setText(_translate("FormWorkTable", "Search:"))
         self.label.setText(_translate("FormWorkTable", "Улучшайте свой словарь!"))
+        self.btnSearch_2.setText(_translate("FormWorkTable", "Clean search"))

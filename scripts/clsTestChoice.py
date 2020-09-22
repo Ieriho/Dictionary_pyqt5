@@ -6,12 +6,11 @@ import codecs
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
+import os
+import sys
 
 from clsTestSetup import *
 from clsCoupleFinder import *
-
-import os
-import sys
 
 class Ui_FormTestChoice(object):
     def setupUi(self, FormTestChoice):
@@ -97,14 +96,18 @@ class TestChoice(QtWidgets.QWidget):
         self.initUI() 
         
     def initUI(self):
-        self.well_learned = self.df.loc[self.df['Knowledge'] > 0.6]
+        self.well_learned = self.df.loc[self.df['Knowledge'] > 0.45]
         if self.well_learned.shape[0] >= 10:
             self.ui.btnCF.setEnabled(True)
+            self.ui.btnCT.setEnabled(True)
         else:
             self.ui.btnCF.setDisabled(True)
+            self.ui.btnCT.setDisabled(True)
         
         self.ui.btnOOF.clicked.connect(self.go_oof)
         self.ui.btnCF.clicked.connect(self.go_cf)
+        self.ui.btnCT.clicked.connect(self.go_ct)
+        self.ui.btnGallows.clicked.connect(self.go_gallows)
         self.ui.btnWhyDisabled.clicked.connect(self.why_tests_disabled)
         self.ui.btnBack.clicked.connect(self.close)
         self.show()
@@ -112,13 +115,13 @@ class TestChoice(QtWidgets.QWidget):
     def why_tests_disabled(self):
         file = self.main.txt_dir + '/' + 'why_test_is_disabled.txt'
         txt = codecs.open(file, 'r', 'utf-8')
-        info = QtWidgets.QMessageBox.information(self, 'Почему?',
+        info = QtWidgets.QMessageBox.information(self, 'Why?',
                                                     str(txt.read()),
                                                     buttons=QtWidgets.QMessageBox.Close,
                                                     defaultButton=QtWidgets.QMessageBox.Close)
     
     def go_oof(self):
-        self.setup_oof = TestSetup(self)
+        self.test_setup = TestSetup(self, test_type='oof')
         self.close()
     
     def go_cf(self):
@@ -126,7 +129,8 @@ class TestChoice(QtWidgets.QWidget):
         self.close()
         
     def go_ct(self):
-        pass
+        self.test_setup = TestSetup(self, test_type='ct')
+        self.close()
         
     def go_gallows(self):
         pass

@@ -124,6 +124,19 @@
     <string>Улучшайте свой словарь!</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="btnSearch_2">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>90</y>
+     <width>131</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Clean search</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

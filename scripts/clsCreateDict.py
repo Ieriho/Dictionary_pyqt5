@@ -112,13 +112,13 @@ class Ui_FormCreateDict(object):
         self.lineKind.setText(_translate("FormCreateDict", "kind"))
         self.lineWord.setText(_translate("FormCreateDict", "word"))
         self.lineTrsl.setText(_translate("FormCreateDict", "translation"))
-        self.label.setText(_translate("FormCreateDict", "Род (тип) слова:"))
-        self.label_2.setText(_translate("FormCreateDict", "Слово (термин):"))
-        self.label_3.setText(_translate("FormCreateDict", "Перевод (расшифровка):"))
-        self.label_4.setText(_translate("FormCreateDict", "Создайте новый словарь!"))
-        self.label_5.setText(_translate("FormCreateDict", "Подписи столбцов"))
+        self.label.setText(_translate("FormCreateDict", "Kind (type) of word:"))
+        self.label_2.setText(_translate("FormCreateDict", "Word (termin):"))
+        self.label_3.setText(_translate("FormCreateDict", "Translation (decryption):"))
+        self.label_4.setText(_translate("FormCreateDict", "Create a new dictionary!"))
+        self.label_5.setText(_translate("FormCreateDict", "Columns titles"))
         self.lineDictTitle.setText(_translate("FormCreateDict", "Dictionary"))
-        self.label_7.setText(_translate("FormCreateDict", "Название словаря:"))
+        self.label_7.setText(_translate("FormCreateDict", "Name of the dictionary:"))
         
         
 class CreateDict(QtWidgets.QDialog):
@@ -136,11 +136,11 @@ class CreateDict(QtWidgets.QDialog):
         self.show()
      
     def check_str(self, s: str):
-        '''Обработка и Проверка правильности ввода слова'''
+        '''Processing and verification the entered word'''
         s_state = False
         if s.isalpha:
             s_state = True            
-        s = s.strip() #удаление пробелов в начале и в конце
+        s = s.strip()
         s = s.capitalize()
         return s, s_state
         
@@ -153,8 +153,8 @@ class CreateDict(QtWidgets.QDialog):
             if state:
                 cols[i] = new_col_name
             else:
-                info = QtWidgets.QMessageBox.information(self, 'Ошибка',
-                                                         'В названиях допустимы только буквы (пока так)!',
+                info = QtWidgets.QMessageBox.information(self, 'Error',
+                                                         'Only letters are allowed in the titles (for now)',
                                                          buttons=QtWidgets.QMessageBox.Close,
                                                          defaultButton=QtWidgets.QMessageBox.Close)
                 
@@ -166,15 +166,15 @@ class CreateDict(QtWidgets.QDialog):
         if not folder == '':
             print(folder, df_title)
             self.new_df.to_csv(folder + '/' + df_title + '.csv')
-            info = QtWidgets.QMessageBox.information(self, 'Результат',
-                                                    'Словарь создан!',
+            info = QtWidgets.QMessageBox.information(self, 'Result',
+                                                    'The dictionary created!',
                                                     buttons=QtWidgets.QMessageBox.Close,
                                                     defaultButton=QtWidgets.QMessageBox.Close)
             self.close()
             
 
     def go_back(self):
-        exit = SaveChanges('Вы действительно хотите вернуться в главное меню?')
+        exit = SaveChanges('Do you want to return to the main menu?')
         result = exit.exec_()
         if result == QtWidgets.QDialog.Accepted:
             exit.close()

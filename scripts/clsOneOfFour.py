@@ -90,7 +90,7 @@ class Ui_FormOOFMain(object):
     def retranslateUi(self, FormOOFMain):
         _translate = QtCore.QCoreApplication.translate
         FormOOFMain.setWindowTitle(_translate("FormOOFMain", "Form"))
-        self.labelTitle.setText(_translate("FormOOFMain", "Подберите правильный перевод:"))
+        self.labelTitle.setText(_translate("FormOOFMain", "Select right translation:"))
         self.btnA.setText(_translate("FormOOFMain", "PushButton"))
         self.btnB.setText(_translate("FormOOFMain", "PushButton"))
         self.btnD.setText(_translate("FormOOFMain", "PushButton"))
@@ -104,6 +104,7 @@ class OneOfFour(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_FormOOFMain()
         self.ui.setupUi(self)
+        self.setWindowModality(QtCore.Qt.WindowModal)
         self.main = root
         self.df_dict = self.main.df
         self.count = self.main.count
@@ -112,20 +113,10 @@ class OneOfFour(QtWidgets.QWidget):
         self.timer_val = self.main.timer_val
         self.i = 0
         
-        
-        
         if self.time_is_set:
             self.ui.lcdNumber.setEnabled(True)
         else:
             self.ui.lcdNumber.setDisabled(False)
-        self.ui.btnBack.clicked.connect(self.go_back)
-        self.btns_grp = QtWidgets.QButtonGroup()
-        self.btns_grp.addButton(self.ui.btnA)
-        self.btns_grp.addButton(self.ui.btnB)
-        self.btns_grp.addButton(self.ui.btnC)
-        self.btns_grp.addButton(self.ui.btnD)
-        self.btns_grp.buttonClicked.connect(self.go_next)
-            
         self.main_timer = QtCore.QTimer()
         self.main_timer.setSingleShot(False)
         self.main_timer.timeout.connect(self.main_timer_out)
@@ -133,18 +124,22 @@ class OneOfFour(QtWidgets.QWidget):
         self.lcd_timer.setSingleShot(False)
         self.lcd_timer.timeout.connect(self.lcd_timer_out)
         
-        
-        
-        self.count_var = 3 # Выбираем количество ложных ответов в каждом вопросе
-        self.right_count = 0 # Счётчик количества верных ответов
-        self.delta_time = 0 # Счётчик затраченного времени
+        self.ui.btnBack.clicked.connect(self.go_back)
+        self.btns_grp = QtWidgets.QButtonGroup()
+        self.btns_grp.addButton(self.ui.btnA)
+        self.btns_grp.addButton(self.ui.btnB)
+        self.btns_grp.addButton(self.ui.btnC)
+        self.btns_grp.addButton(self.ui.btnD)
+        self.btns_grp.buttonClicked.connect(self.go_next)
+
+        self.right_count = 0 # counter of correct answers
+        self.delta_time = 0 # elapsed time counter
         self.show()
         self.create_test()
         
     def create_test(self):
-        # Создание теста one of four
         self.start_time = datetime.datetime.now()  
-        # Генерируем случайные числа, используя текущие микросекунды на устройстве
+        # Generate a random numbers using current microseconds on device
         np.random.seed(self.count * int(self.start_time.microsecond))
         
         if self.directForward:
@@ -160,53 +155,54 @@ class OneOfFour(QtWidgets.QWidget):
             self.lcd_timer.start()
         else:
             self.main_timer.setInterval(-1)
-        self.main_timer.start()  
+        self.main_timer.start()
         
-        self.right_answer = self.df_dict.sample(n=1, weights=(1-self.df_dict['Knowledge'])) # Случайная строка датафрейма
+        self.right_answer = self.df_dict.sample(n=1, weights=(1-self.df_dict['Knowledge']))
         # выбираем count_var неправильных записей в словаре так, что их род совпадает с родом правильного ответа
         # и не совпадает с индексом правильного ответа (чтоб не было повторов)
         left_answers = self.df_dict.loc[(self.df_dict.kind == self.right_answer["kind"].values[0])
-                           & (self.df_dict.index != self.right_answer.index[0])].sample(n=self.count_var)
-        self.test_i = self.right_answer.append(left_answers) # объединяем варианты ответа
-        self.test_i = self.test_i.sample(frac=1) # перемешиваем
+                           & (self.df_dict.index != self.right_answer.index[0])].sample(n=3)
+        self.test_i = self.right_answer.append(left_answers) 
+        self.test_i = self.test_i.sample(frac=1) # mix
 
-        # Выводим задание, в зависимости от направления перевода и числа слов
-        self.ui.labelTask.setText(f'Слово для перевода: {self.right_answer.iloc[0][self.col_task]}')
+        # Output task
+        self.ui.labelTask.setText(f'Word for tranlation: {self.right_answer.iloc[0][self.col_task]}')
         
         self.btns = self.btns_grp.buttons()
         for j in range(self.test_i.shape[0]):
             if self.test_i.iloc[j][self.col_task] == self.right_answer.iloc[0][self.col_task]:
-                self.row_right = j # номер строки (кнопки) с правильным ответом
+                self.row_right = j # number of button (row) with right answer
             pos = self.test_i.iloc[j][self.col_ans]
             self.btns[j].setText(pos)
                                     
         self.progress_counter = ((self.i+1)/self.count) * 100 
         self.ui.progressBar.setProperty("value", self.progress_counter)
-        self.ui.btnBack.clicked.connect(self.go_back) 
-            
         self.ui.progressBar.repaint()
+        
         for btn in self.btns:
             btn.repaint
         self.ui.labelTask.repaint()
         
         
     def change_stat(self, add: bool, row: int):
-        '''Изменяет значение в столбце статистики для заданного слова'''
+        '''Change value in the column of the given word'''
         if add:
             if self.df_dict.loc[row, 'Knowledge'] < 0.9:
-                x = self.df_dict.loc[row, 'Knowledge'] + 0.1
+                x = self.df_dict.loc[row, 'Knowledge'] + 0.075
                 self.df_dict.loc[row, 'Knowledge'] = round(x, 2)
             else:
                 pass #придумать f(x) -> 1 при x: [0.9, 1)
         else:
             if self.df_dict.loc[row, 'Knowledge'] > 0.1:
-                x = self.df_dict.loc[row, 'Knowledge'] - 0.1
+                x = self.df_dict.loc[row, 'Knowledge'] - 0.08
                 self.df_dict.loc[row, 'Knowledge'] = round(x, 2)
             else:
                 x = round(math.asinh(self.df_dict.loc[row, 'Knowledge']-0.2*self.df_dict.loc[row, 'Knowledge']), 3)
                 self.df_dict.loc[row, 'Knowledge'] = x
         
     def main_timer_out(self):
+        self.btns[self.row_right].setStyleSheet('QPushButton {background-color: yellow; color: black;}')
+        time.sleep(2)
         self.main.main.main.df_dict = self.df_dict
         row = self.right_answer.index[0]
         self.change_stat(False, row)
@@ -250,13 +246,12 @@ class OneOfFour(QtWidgets.QWidget):
         if self.progress_counter == 100:
             self.test_result = TestResult(self)
             self.main.main.main.df_dict = self.df_dict
-            
         else:
             self.i += 1
             self.create_test()
     
     def go_back(self):
-        self.save_dialog = SaveChanges(message='Выйти из теста? Прогресс не сохранится!')
+        self.save_dialog = SaveChanges(message='Leave test? Progress will not saved!')
         result = self.save_dialog.exec_()
         if result == QtWidgets.QDialog.Accepted:
             self.save_dialog.close()

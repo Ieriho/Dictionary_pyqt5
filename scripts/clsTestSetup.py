@@ -8,6 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 import datetime
 
 from clsOneOfFour import *
+from clsClearTranslator import *
 
 class Ui_FormTestSetup(object):
     def setupUi(self, FormTestSetup):
@@ -20,7 +21,7 @@ class Ui_FormTestSetup(object):
         font.setPointSize(11)
         self.spinBoxCount.setFont(font)
         self.spinBoxCount.setMinimum(3)
-        self.spinBoxCount.setSingleStep(5)
+        self.spinBoxCount.setSingleStep(1)
         self.spinBoxCount.setObjectName("spinBoxCount")
         self.rbtnForward = QtWidgets.QRadioButton(FormTestSetup)
         self.rbtnForward.setGeometry(QtCore.QRect(50, 110, 82, 17))
@@ -108,12 +109,13 @@ class Ui_FormTestSetup(object):
 
         
 class TestSetup(QtWidgets.QWidget):
-    def __init__(self, root, parent=None):
+    def __init__(self, root, test_type='oof', parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_FormTestSetup()
         self.ui.setupUi(self)
         self.main = root
         self.df = root.df
+        self.test_type = test_type
         self.directForward = True
         self.initUI() 
         
@@ -143,6 +145,11 @@ class TestSetup(QtWidgets.QWidget):
             self.time_is_set = False
             self.timer_val = 0
         self.count = int(self.ui.spinBoxCount.value())
-        self.tester = OneOfFour(self)
+        if self.test_type == 'oof':
+            self.tester = OneOfFour(self)
+        elif self.test_type == 'ct':
+            self.tester = ClearTranslator(self)
+        else:
+            raise ValueError(f'Invalid test cipher: {self.test_type}')
         self.close()
             

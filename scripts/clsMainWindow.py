@@ -40,12 +40,13 @@ class Ui_FormMainWindow(object):
         self.btnTests.setFont(font)
         self.btnTests.setObjectName("btnTests")
         self.labelState = QtWidgets.QLabel(FormMainWindow)
-        self.labelState.setGeometry(QtCore.QRect(130, 350, 261, 20))
+        self.labelState.setGeometry(QtCore.QRect(130, 340, 261, 71))
         font = QtGui.QFont()
         font.setFamily("Modern No. 20")
         font.setPointSize(11)
         self.labelState.setFont(font)
         self.labelState.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.labelState.setWordWrap(True)
         self.labelState.setObjectName("labelState")
         self.btnStat = QtWidgets.QPushButton(FormMainWindow)
         self.btnStat.setGeometry(QtCore.QRect(120, 430, 271, 41))
@@ -101,7 +102,7 @@ class Ui_FormMainWindow(object):
         self.btnSelect.setText(_translate("FormMainWindow", "Selecting a dictionary"))
         self.btnWork.setText(_translate("FormMainWindow", "Working with a dictionary"))
         self.btnTests.setText(_translate("FormMainWindow", "Tests"))
-        self.labelState.setText(_translate("FormMainWindow", "Dictionary is not selected"))
+        self.labelState.setText(_translate("FormMainWindow", "TextLabel"))
         self.btnStat.setText(_translate("FormMainWindow", "Statistics"))
         self.btnOpt.setText(_translate("FormMainWindow", "Options"))
         self.btnCred.setText(_translate("FormMainWindow", "Credits"))
@@ -125,10 +126,10 @@ class MainWindow(QtWidgets.QWidget):
     def initUI(self):
         self.ui.btnTests.setDisabled(True)
         self.ui.btnWork.setDisabled(True)
-        self.ui.btnSelect.setToolTip('Переход в окно выбора словаря')
-        self.ui.btnWork.setToolTip('Переход в окно работы со словарём')
-        self.ui.btnTests.setToolTip('Переход к тестам')
-        self.ui.btnExit.setToolTip('Выход из программы')
+        self.ui.btnSelect.setToolTip('Go to the selecting window')
+        self.ui.btnWork.setToolTip('Go to the dictionary window')
+        self.ui.btnTests.setToolTip('Go to tests')
+        self.ui.btnExit.setToolTip('Exit the programm')
         
         self.ui.btnSelect.clicked.connect(self.go_select)
         self.df_dict = self.ui.btnWork.clicked.connect(self.go_work)
@@ -139,16 +140,16 @@ class MainWindow(QtWidgets.QWidget):
     def go_select(self):
         try:
             self.file, ffilter = QtWidgets.QFileDialog.getOpenFileName(parent=self,
-                        caption='Выберите словарь', directory='F:',
+                        caption='Select file', directory='F:',
                         filter='All (*)', initialFilter='Csv (*.csv)')
             self.df_dict = pd.read_csv(self.file)
             self.df_dict = self.df_dict.drop(columns=self.df_dict.columns[0], axis=1)
             self.ui.btnTests.setEnabled(True)
             self.ui.btnWork.setEnabled(True)
-            self.ui.labelState.setText(f'Выбран словарь: {self.file}')
+            self.ui.labelState.setText(f'Selected dictionary: {self.file}')
             
         except FileNotFoundError:
-            self.ui.labelState.setText('Словарь не выбран')
+            self.ui.labelState.setText('Dictionary is not selected')
             self.df_dict = pd.DataFrame()
             
     def go_new_dict(self):
@@ -161,7 +162,7 @@ class MainWindow(QtWidgets.QWidget):
         self.testChoiceWindow = TestChoice(self)
         
     def go_exit(self):
-        exit = SaveChanges('Вы действительно хотите выйти?')
+        exit = SaveChanges('Do you realy want to leave?')
         result = exit.exec_()
         if result == QtWidgets.QDialog.Accepted:
             exit.close()

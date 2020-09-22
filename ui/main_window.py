@@ -37,7 +37,7 @@ class Ui_FormMainWindow(object):
         self.btnTests.setFont(font)
         self.btnTests.setObjectName("btnTests")
         self.labelState = QtWidgets.QLabel(FormMainWindow)
-        self.labelState.setGeometry(QtCore.QRect(130, 350, 261, 51))
+        self.labelState.setGeometry(QtCore.QRect(130, 340, 261, 71))
         font = QtGui.QFont()
         font.setFamily("Modern No. 20")
         font.setPointSize(11)

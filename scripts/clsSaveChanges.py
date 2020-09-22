@@ -33,12 +33,9 @@ class Ui_SaveDialog(object):
     def retranslateUi(self, SaveDialog):
         _translate = QtCore.QCoreApplication.translate
         SaveDialog.setWindowTitle(_translate("SaveDialog", "Dialog"))
-        self.label.setText(_translate("SaveDialog", "Сохранить изменения?"))
-
-
 
 class SaveChanges(QtWidgets.QDialog):
-    def __init__(self, message="Сохранить изменения?", parent=None):
+    def __init__(self, message="Save Changes?", parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         self.ui = Ui_SaveDialog()
         self.frame = QtWidgets.QFrame()

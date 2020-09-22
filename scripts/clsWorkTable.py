@@ -49,6 +49,9 @@ class Ui_FormWorkTable(object):
         font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
+        self.btnCleanSearch = QtWidgets.QPushButton(FormWorkTable)
+        self.btnCleanSearch.setGeometry(QtCore.QRect(470, 90, 131, 31))
+        self.btnCleanSearch.setObjectName("btnSearch_2")
 
         self.retranslateUi(FormWorkTable)
         QtCore.QMetaObject.connectSlotsByName(FormWorkTable)
@@ -62,7 +65,7 @@ class Ui_FormWorkTable(object):
         self.btnRemove.setText(_translate("FormWorkTable", "Remove"))
         self.btnSearch.setText(_translate("FormWorkTable", "Search:"))
         self.label.setText(_translate("FormWorkTable", "Улучшайте свой словарь!"))
-
+        self.btnCleanSearch.setText(_translate("FormWorkTable", "Clean search"))
 
 class WorkTable(QtWidgets.QWidget):
     def __init__(self, root, parent=None):
@@ -71,7 +74,7 @@ class WorkTable(QtWidgets.QWidget):
         self.ui.setupUi(self)
         
         self.main = root
-        self.setWindowModality(QtCore.Qt.WindowModal) # делает окно модальным
+        self.setWindowModality(QtCore.Qt.WindowModal)
         self.df = self.main.df_dict
         self.df_orig = self.main.df_dict.copy(deep=True)
         self.df_head = self.df.columns.values.tolist()
@@ -92,24 +95,24 @@ class WorkTable(QtWidgets.QWidget):
                 item.setText(str(self.df.iloc[i][j]))
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
                 self.ui.tableWidget.setItem(i, j, item)
-                self.ui.tableWidget.cellClicked.connect(self.clickedRowColumn)
+                self.ui.tableWidget.cellClicked.connect(self.clicked_row_column)
         
         for i in range(self.ui.tableWidget.columnCount()):
             self.ui.tableWidget.resizeColumnToContents(i)
         
-        self.ui.btnNew.setToolTip('Создать новую запись')
+        self.ui.btnNew.setToolTip('Create new dictionary entry')
         self.ui.btnNew.clicked.connect(self.go_new)
         self.ui.btnEdit.setDisabled(True)
-        self.ui.btnEdit.setToolTip('Редактировать выбранную запись')
+        self.ui.btnEdit.setToolTip('Edit selected entry')
         self.ui.btnEdit.clicked.connect(self.go_edit)
         self.ui.btnRemove.setDisabled(True)
-        self.ui.btnRemove.setToolTip('Удалить выбранную запись')
+        self.ui.btnRemove.setToolTip('Delete selected entry')
         self.ui.btnRemove.clicked.connect(self.go_remove)
-        self.ui.btnSearch.setToolTip('Поиск по словарю')
+        self.ui.btnSearch.setToolTip('Dictionary search')
         self.ui.btnSearch.clicked.connect(self.go_search)
-        #self.ui.btnCleanSearch.setDisabled(True)
-        #self.ui.btnCleanSearch.setToolTip('Очистка поиска')
-        #self.ui.btnCleanSearch.clicked.connect(self.clean_search)
+        self.ui.btnCleanSearch.setDisabled(True)
+        self.ui.btnCleanSearch.setToolTip('Clean search')
+        self.ui.btnCleanSearch.clicked.connect(self.clean_search)
         self.ui.btnOK.clicked.connect(self.go_ok)
         
         self.old_kind = ''
@@ -119,14 +122,13 @@ class WorkTable(QtWidgets.QWidget):
         
         self.show()
         
-    def clickedRowColumn(self, r, c):
-        #print(f'вы кликнули в ячейку №{r}, {c}')
+    def clicked_row_column(self, r, c):
         self.cell_number = (r, c)
         self.ui.btnEdit.setEnabled(True)
         self.ui.btnRemove.setEnabled(True)
 
     def go_remove(self):
-        self.remove_dialog = SaveChanges(message='Удалить выбранную строку из словаря?')
+        self.remove_dialog = SaveChanges(message='Delete this line from the dictionary?')
         result = self.remove_dialog.exec_()
         if result == QtWidgets.QDialog.Accepted:
             self.df.drop([self.cell_number[0]], inplace=True)
@@ -150,25 +152,26 @@ class WorkTable(QtWidgets.QWidget):
                 self.ui.tableWidget.item(i, 2).setBackground(search_color)
                     
         if not first_found:
-            info = QtWidgets.QMessageBox.information(self, 'Ошибка',
-                                                    'Введённый текст не найден!',
+            info = QtWidgets.QMessageBox.information(self, 'Error',
+                                                    'Entered text is not found!',
                                                     buttons=QtWidgets.QMessageBox.Close,
                                                     defaultButton=QtWidgets.QMessageBox.Close)
         else:
             self.ui.tableWidget.setCurrentItem(first_found)      
         self.ui.tableWidget.repaint()
-        #self.ui.btnCleanSearch.setEnabled(True)
+        self.ui.btnCleanSearch.setEnabled(True)
 
     def clean_search(self):
+        clean_color = QtGui.QColor(255, 255, 255)
         self.ui.lineSearch.setText('')
         for i in range(self.df.shape[0]):
-            self.ui.tableWidget.item(i, 1).setBackground(None)
-            self.ui.tableWidget.item(i, 2).setBackground(None)
+            self.ui.tableWidget.item(i, 1).setBackground(clean_color)
+            self.ui.tableWidget.item(i, 2).setBackground(clean_color)
         self.ui.tableWidget.repaint()
-        #self.ui.btnRemove.setDisabled(True)
+        self.ui.btnRemove.setDisabled(True)
         
-    def save_record(self, msg="Сохранить изменения?", *args):
-        '''Окно выхода из режима записи'''
+    def save_record(self, msg="Save changes?", *args):
+        '''Exit recording window'''
         save_rec = SaveChanges(msg) 
         result = save_rec.exec_()
         if result == QtWidgets.QDialog.Accepted:
@@ -179,7 +182,7 @@ class WorkTable(QtWidgets.QWidget):
             return tuple()
         
     def check_str(self, s: str):
-        '''Обработка и Проверка правильности ввода слова'''
+        '''Processing and verification the entered word'''
         s_state = False
         if ' ' in s:
             temp = s.replace(' ', '')
@@ -187,12 +190,12 @@ class WorkTable(QtWidgets.QWidget):
                 s_state = True
         elif s.isalpha:
             s_state = True            
-        s = s.strip() #удаление пробелов в начале и в конце
+        s = s.strip()
         s = s.lower()
         return s, s_state
     
     def check_the_same_one(self, s: str, col: int):
-        '''Проверяет, есть ли уже такое слово с таким же родом в словаре'''
+        '''Verification, is there such a word with same kind in the dictionary'''
         s_state = True
         if s in self.df[self.df.columns[col]]:
             kind_idx = self.df[self.df.columns[0]].values.index(s)
@@ -202,73 +205,75 @@ class WorkTable(QtWidgets.QWidget):
                     
         
     def go_new(self):
-        kind, kind_ok = QtWidgets.QInputDialog.getItem(self, 'Ввод', 'Выберите род слова',
+        kind, kind_ok = QtWidgets.QInputDialog.getItem(self, 'Input', 'Выберите род слова',
                                                      ['S - Существительное', 'V - Глагол',
                                                       'E - Прилагательное', 'A - Наречие',
                                                       'P - Частица или предлог', 'C - Выражение'])
+        word_ok = False
         if kind_ok:
             word_state = False
             while not word_state:
-                word, word_ok = QtWidgets.QInputDialog.getText(self, 'Ввод',
-                                                               'Напишите слово',
+                word, word_ok = QtWidgets.QInputDialog.getText(self, 'Input',
+                                                               'Write a word',
                                                                text=self.old_word)
                 word, word_state = self.check_str(word)
                 if not word_state:
-                    info = QtWidgets.QMessageBox.information(self, 'Ошибка',
-                                                             'В слове допустимы только пробелы и буквы!',
+                    info = QtWidgets.QMessageBox.information(self, 'Error',
+                                                             'Only spaces and letters are allowed in the input!',
                                                              buttons=QtWidgets.QMessageBox.Close,
                                                              defaultButton=QtWidgets.QMessageBox.Close)
                 word_state = self.check_the_same_one(word, 1)
                 if not word_state:
-                    info = QtWidgets.QMessageBox.information(self, 'Ошибка',
-                                                             'Такое слово уже есть в словаре!',
+                    info = QtWidgets.QMessageBox.information(self, 'Error',
+                                                             'This word is already in the dictionary!',
                                                              buttons=QtWidgets.QMessageBox.Close,
                                                              defaultButton=QtWidgets.QMessageBox.Close)
 
         if word_ok:
-            num, num_ok = QtWidgets.QInputDialog.getInt(self, 'Ввод', 'Введите число вариантов перевода',
+            num, num_ok = QtWidgets.QInputDialog.getInt(self, 'Input', 'Input a number of translation options',
                                                         value=self.old_num_trsl, min=1, max=5, step=1)
             if num_ok:
                 trsl_str = ''
                 i = 0
-                while num - i > 1:
+                while num - i >= 1:
                     trsl_state = False
                     while not trsl_state:
                         try:
                             default_text = self.old_trsl[i]
                         except IndexError:
                             default_text = ''
-                            
-                        trsl, trsl_ok = QtWidgets.QInputDialog.getText(self, 'Ввод',
-                                                                       f'Напишите перевод №{i+1}',
+                        
+                        trsl_ok = False
+                        trsl, trsl_ok = QtWidgets.QInputDialog.getText(self, 'Input',
+                                                                       f'Write a translation №{i+1}',
                                                                        text=default_text)
                         trsl, trsl_state = self.check_str(trsl)
                         if not trsl_state:
-                            info = QtWidgets.QMessageBox.information(self, 'Ошибка',
-                                                                    'В слове допустимы только пробелы и буквы!',
+                            info = QtWidgets.QMessageBox.information(self, 'Error',
+                                                                    'Only spaces and letters are allowed in the input!',
                                                                     buttons=QtWidgets.QMessageBox.Close,
                                                                     defaultButton=QtWidgets.QMessageBox.Close)   
                     if trsl_ok:
                         trsl_str += (trsl + ', ')
-                        i += 1
                         if num - i == 1:
                             trsl_str_state = self.check_the_same_one(trsl_str[:len(trsl_str)-2], 2)
                             if trsl_str_state:
-                                new_record = self.save_record("Сохранить запись?", kind[0],
+                                new_record = self.save_record("Save entry?", kind[0],
                                                           word, trsl_str[:len(trsl_str)-2], 0.1)
                             else:
-                                txt = 'Точно такой же перевод уже есть в словаре! Попробуйте ввести ещё раз'
-                                info = QtWidgets.QMessageBox.information(self, 'Ошибка',
+                                txt = 'Exactly the same translation is already in the dictionary! Try input again'
+                                info = QtWidgets.QMessageBox.information(self, 'Error',
                                                              txt,
                                                              buttons=QtWidgets.QMessageBox.Close,
                                                              defaultButton=QtWidgets.QMessageBox.Close)
                                 i = 0
+                        i += 1
                     else:
-                        new_record = self.save_record("Сохранить род, слово и текущий перевод?",
+                        new_record = self.save_record("Save a kind, a word and current translation?",
                                                       kind[0], word, trsl_str[:len(trsl_str)-2], 0.1)
                         break
             else:
-                new_record = self.save_record("Сохранить слово без перевода?", kind[0], word)
+                new_record = self.save_record("Save the word without translation?", kind[0], word)
             ##############################    
             currentRowCount = self.ui.tableWidget.rowCount()
             self.ui.tableWidget.insertRow(currentRowCount)
